@@ -1,5 +1,6 @@
 import pygame
 from random import *
+import  math
 
 
 class SmallEnemy(pygame.sprite.Sprite):
@@ -19,11 +20,9 @@ class SmallEnemy(pygame.sprite.Sprite):
         ])
         self.rect = self.image.get_rect()
         self.width, self.height = bg_size[0], bg_size[1]
-        self.level = 1
-        self.speed = 2
+        self.speed = 1
         self.active = True
-        self.maxHP = 1
-        self.HP = self.maxHP
+        self.HP = SmallEnemy.maxHP
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
@@ -65,7 +64,6 @@ class MidEnemy(pygame.sprite.Sprite):
         ])
         self.rect = self.image.get_rect()
         self.width, self.height = bg_size[0], bg_size[1]
-        self.level = 1
         self.speed = 2
         self.active = True
         self.hit = False
@@ -73,7 +71,7 @@ class MidEnemy(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
-            randint(-20 * self.height, -self.height)
+            randint(-5 * self.height, -self.height)
 
     def move(self):
         if self.rect.top < self.height:
@@ -86,7 +84,7 @@ class MidEnemy(pygame.sprite.Sprite):
         self.HP = MidEnemy.maxHP
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
-            randint(-15 * self.height, 0)
+            randint(-5 * self.height, 0)
 
     def update(self, level):
         MidEnemy.maxHP = 8 * level
@@ -113,7 +111,6 @@ class BigEnemy(pygame.sprite.Sprite):
         ])
         self.rect = self.image1.get_rect()
         self.width, self.height = bg_size[0], bg_size[1]
-        self.level = 1
         self.speed = 1
         self.active = True
         self.hit = False
@@ -121,13 +118,13 @@ class BigEnemy(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image1)
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
-            randint(-20 * self.height, -5 * self.height)
+            randint(-10 * self.height, -self.height)
 
     def move(self, h_action, w_action):
         if self.rect.top < 30:
             self.rect.top += self.speed
         else:
-            if self.rect.top < self.height // 2 and self.rect.left > 0 and self.rect.right < self.width:
+            if self.rect.top < self.height // 3 and self.rect.left > 0 and self.rect.right < self.width:
                 if h_action:
                     self.rect.top += self.speed
                 else:
@@ -149,11 +146,62 @@ class BigEnemy(pygame.sprite.Sprite):
         self.HP = BigEnemy.maxHP
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
-            randint(-15 * self.height, -5 * self.height)
+            randint(-10 * self.height, -self.height)
 
     def update(self, level):
         BigEnemy.maxHP = 2 * 3 ** level + 10 * level ** 2
         self.HP = BigEnemy.maxHP
+
+
+class BombEnemy(pygame.sprite.Sprite):
+    maxHP = 30
+
+    def __init__(self, bg_size):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.image.load("images/enemy4.png").convert_alpha()
+        self.destroy_images = []
+        self.destroy_images.extend([
+            pygame.image.load("images/enemy4_down0.png").convert_alpha(),
+            pygame.image.load("images/enemy4_down1.png").convert_alpha(),
+            pygame.image.load("images/enemy4_down2.png").convert_alpha(),
+            pygame.image.load("images/enemy4_down3.png").convert_alpha(),
+            pygame.image.load("images/enemy4_down4.png").convert_alpha()
+        ])
+        self.rect = self.image.get_rect()
+        self.width, self.height = bg_size[0], bg_size[1]
+        self.speed = 2
+        self.active = True
+        self.HP = BombEnemy.maxHP
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.left, self.rect.top = \
+            randint(0, self.width - self.rect.width), \
+            randint(-self.height, 0)
+
+    def move(self, target):
+        x1, y1 = self.rect.left, self.rect.top
+        x2, y2 = target.rect.left, target.rect.top
+        dx = x2 - x1
+        dy = y2 - y1
+        r = math.sqrt(dx ** 2 + dy ** 2)
+        sin = dy / r
+        cos = dx / r
+        if self.rect.top < self.height:
+            self.rect.left += cos * self.speed
+            self.rect.top += sin * self.speed
+        else:
+            self.reset()
+
+    def reset(self):
+        self.active = True
+        self.HP = BombEnemy.maxHP
+        self.rect.left, self.rect.top = \
+            randint(0, self.width - self.rect.width), \
+            randint(-self.height, 0)
+
+    def update(self, level):
+        BombEnemy.maxHP = level ** 2
+        self.HP = BombEnemy.maxHP
 
 
 

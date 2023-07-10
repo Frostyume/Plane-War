@@ -58,18 +58,39 @@ def add_small_enemies(group1, group2, num):
         group2.add(e1)
 
 
-def add_mid_enemies(group1, group2, num):
+def add_mid_enemies(group1, group2, e_bullet, e_bullet1, bullet_num, num):
     for i in range(num):
         e2 = enemy.MidEnemy(bg_size)
+        b1 = bullet.EnemyBullet1(e2.rect.midbottom)
+        for j in range(bullet_num):
+            e_bullet1.append(b1)
+            e_bullet.add(b1)
         group1.add(e2)
         group2.add(e2)
 
 
-def add_big_enemies(group1, group2, num):
+def add_big_enemies(group1, group2, e_bullet, e_bullet2, e_bullet3, bullet_num1, bullet_num2, num):
     for i in range(num):
         e3 = enemy.BigEnemy(bg_size)
+        b3 = bullet.EnemyBullet3((e3.rect.centerx - 70, e3.rect.centery - 30))
+        b2 = bullet.EnemyBullet2(e3.rect.midbottom)
+        for j in range(bullet_num1):
+            e_bullet2.append(b2)
+            e_bullet.add(b2)
+        for k in range((bullet_num2 // 2)):
+            e_bullet3.append(b3)
+            e_bullet3.append(b3)
+            e_bullet.add(b3)
+            e_bullet.add(b3)
         group1.add(e3)
         group2.add(e3)
+
+
+def add_bomb_enemies(group1, group2, num):
+    for i in range(num):
+        e4 = enemy.BombEnemy(bg_size)
+        group1.add(e4)
+        group2.add(e4)
 
 
 # 增加敌机速度
@@ -89,21 +110,6 @@ def main():
     # 生成我方飞机
     me = myplane.MyPlane(bg_size)
 
-    # 生成敌人
-    enemies = pygame.sprite.Group()
-
-    # 生成小型敌机
-    small_enemies = pygame.sprite.Group()
-    add_small_enemies(small_enemies, enemies, 30)
-
-    # 生成中型敌机
-    mid_enemies = pygame.sprite.Group()
-    add_mid_enemies(mid_enemies, enemies, 1)
-
-    # 生成大型敌机
-    big_enemies = pygame.sprite.Group()
-    add_big_enemies(big_enemies, enemies, 0)
-
     # 生成普通子弹
     bullet1 = []
     bullet1_index = 0
@@ -116,13 +122,48 @@ def main():
     bullet2_num = 2
     for i in range(bullet2_num // 2):
         bullet2.append(bullet.Bullet2((me.rect.centerx - 33, me.rect.centery)))
-        bullet2.append(bullet.Bullet2((me.rect.centerx + 30, me.rect.centery)))
+        bullet2.append(bullet.Bullet2((me.rect.centerx + 31, me.rect.centery)))
 
     # 生成导弹
     bullet3 = []
     bullet3_index = 0
     bullet3_num = 1
 
+    # 生成敌机子弹
+    e_bullet = pygame.sprite.Group()
+
+    # 生成中型敌机子弹
+    e_bullet1 = []
+    e_bullet1_index = 0
+    e_bullet1_num = 2
+
+    # 生成大型敌机子弹
+    e_bullet2 = []
+    e_bullet2_index = 0
+    e_bullet2_num = 3
+
+    # 生成大型敌机导弹
+    e_bullet3 = []
+    e_bullet3_index = 0
+    e_bullet3_num = 4
+
+    # 生成敌人
+    enemies = pygame.sprite.Group()
+
+    # 生成小型敌机
+    small_enemies = pygame.sprite.Group()
+    add_small_enemies(small_enemies, enemies, 30)
+
+    # 生成中型敌机
+    mid_enemies = pygame.sprite.Group()
+    add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 1)
+
+    # 生成大型敌机
+    big_enemies = pygame.sprite.Group()
+
+    # 生成自爆敌机
+    bomb_enemies = pygame.sprite.Group()
+    
     # 子弹伤害
     damage = 1
 
@@ -165,6 +206,7 @@ def main():
     ROF_supply = supply.ROFSupply(bg_size)
     range_supply = supply.RangeSupply(bg_size)
     life_supply = supply.LifeSupply(bg_size)
+    speed_supply = supply.SpeedSupply(bg_size)
     SUPPLY_TIME = USEREVENT
     # pygame.time.set_timer(SUPPLY_TIME, randint(5, 15) * 1000)
     pygame.time.set_timer(SUPPLY_TIME, 5000)
@@ -192,6 +234,16 @@ def main():
     h_action = choice([True, False])
     w_action = choice([True, False])
 
+    # 大型敌机随机发射子弹
+    BIG_ENEMY_SHOOT1 = USEREVENT + 4
+    pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(1, 3) * 1000)
+    shoot1 = 0
+
+    # 大型敌机随机发射导弹
+    BIG_ENEMY_SHOOT2 = USEREVENT + 5
+    pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(3, 5) * 1000)
+    shoot2 = 0
+
     # 用于阻止重复打开记录文档
     recorded = False
 
@@ -214,6 +266,7 @@ def main():
     # 判断升级为导弹
     update_bullet = False
 
+    # 游戏时钟
     clock = pygame.time.Clock()
     running = True
 
@@ -257,7 +310,7 @@ def main():
                 if pygame.sprite.collide_mask(bullet_supply, me):
                     get_bullet_sound.play()
                     is_super_bullet = True
-                    pygame.time.set_timer(SUPER_BULLET_TIME, 18 * 1000)
+                    pygame.time.set_timer(SUPER_BULLET_TIME, 15 * 1000)
                     bullet_supply.active = False
             # 增加弹道补给
             if ballistic_supply.active:
@@ -329,6 +382,18 @@ def main():
                                     bullet3.append(bullet.Bullet3((me.rect.centerx + 46, me.rect.centery - 50)))
                         else:
                             ballistic_num = 5
+                            damage += 2
+                            bullet3_num += ballistic_num
+                            bullet3_index = 0
+                            bullet3.append(bullet.Bullet3((me.rect.centerx - 48, me.rect.centery - 50)))
+                            bullet3.append(bullet.Bullet3((me.rect.centerx - 25, me.rect.top)))
+                            bullet3.append(bullet.Bullet3(me.rect.midtop))
+                            bullet3.append(bullet.Bullet3((me.rect.centerx + 24, me.rect.top)))
+                            bullet3.append(bullet.Bullet3((me.rect.centerx + 46, me.rect.centery - 50)))
+
+                            bullet2.append(bullet.Bullet2((me.rect.centerx - 33, me.rect.centery)))
+                            bullet2.append(bullet.Bullet2((me.rect.centerx + 30, me.rect.centery)))
+                            bullet2_num += 2
                     ballistic_supply.active = False
             # 增加伤害补给
             if damage_supply.active:
@@ -336,7 +401,7 @@ def main():
                 screen.blit(damage_supply.image, damage_supply.rect)
                 if pygame.sprite.collide_mask(damage_supply, me):
                     get_bomb_sound.play()
-                    damage += 1
+                    damage += level
                     damage_supply.active = False
             # 增加射速补给
             if ROF_supply.active:
@@ -451,6 +516,17 @@ def main():
                     get_bullet_sound.play()
                     life_num += 1
                     life_supply.active = False
+            # 增加速度补给
+            if speed_supply.active:
+                speed_supply.move()
+                screen.blit(speed_supply.image, speed_supply.rect)
+                if pygame.sprite.collide_mask(speed_supply, me):
+                    get_bullet_sound.play()
+                    if me.speed < 12:
+                        me.speed += 1
+                    else:
+                        me.speed = 12
+                    speed_supply.active = False
 
             # 绘制大型敌机
             for each in big_enemies:
@@ -466,8 +542,8 @@ def main():
                             screen.blit(each.image2, each.rect)
                         # 绘制血槽
                         pygame.draw.line(screen, BLACK,
-                                         (each.rect.left, each.rect.top - 5),
-                                         (each.rect.right, each.rect.top - 5), 2)
+                                         (each.rect.left, each.rect.bottom - 5),
+                                         (each.rect.right, each.rect.bottom - 5), 4)
                         # 当HP大于20%时显示绿色，否则显示红色
                         HP_remain = each.HP / enemy.BigEnemy.maxHP
                         if HP_remain > 0.2:
@@ -475,8 +551,8 @@ def main():
                         else:
                             HP_color = RED
                         pygame.draw.line(screen, HP_color,
-                                         (each.rect.left, each.rect.top - 5),
-                                         (each.rect.left + each.rect.width * HP_remain, each.rect.top - 5), 2)
+                                         (each.rect.left, each.rect.bottom - 5),
+                                         (each.rect.left + each.rect.width * HP_remain, each.rect.bottom - 5), 4)
                         # 大型敌机即将出现时，播放音效
                         if each.rect.bottom == -50:
                             enemy3_fly_sound.play(-1)
@@ -504,7 +580,7 @@ def main():
                         # 绘制血槽
                         pygame.draw.line(screen, BLACK,
                                          (each.rect.left, each.rect.top - 5),
-                                         (each.rect.right, each.rect.top - 5), 2)
+                                         (each.rect.right, each.rect.top - 5), 3)
                         # 当HP大于20%时显示绿色，否则显示红色
                         HP_remain = each.HP / enemy.MidEnemy.maxHP
                         if HP_remain > 0.2:
@@ -513,7 +589,7 @@ def main():
                             HP_color = RED
                         pygame.draw.line(screen, HP_color,
                                          (each.rect.left, each.rect.top - 5),
-                                         (each.rect.left + each.rect.width * HP_remain, each.rect.top - 5), 2)
+                                         (each.rect.left + each.rect.width * HP_remain, each.rect.top - 5), 3)
                 else:
                     # 毁灭
                     if not (delay % 3):
@@ -553,6 +629,58 @@ def main():
                         if e1_destroy_index == 0:
                             score += 100
                             each.reset()
+
+            # 绘制自爆敌机
+            for each in bomb_enemies:
+                if each.active:
+                    each.move(me)
+                    screen.blit(each.image, each.rect)
+                    # 绘制血槽
+                    pygame.draw.line(screen, BLACK,
+                                     (each.rect.left, each.rect.top - 5),
+                                     (each.rect.right, each.rect.top - 5), 2)
+                    # 当HP大于20%时显示绿色，否则显示红色
+                    HP_remain = each.HP / enemy.BombEnemy.maxHP
+                    if HP_remain > 0.2:
+                        HP_color = GREEN
+                    else:
+                        HP_color = RED
+                    pygame.draw.line(screen, HP_color,
+                                     (each.rect.left, each.rect.top - 5),
+                                     (each.rect.left + each.rect.width * HP_remain, each.rect.top - 5), 2)
+                else:
+                    # 毁灭
+                    if not (delay % 3):
+                        if e1_destroy_index == 0:
+                            enemy1_down_sound.play()
+                        screen.blit(each.destroy_images[e1_destroy_index], each.rect)
+                        e1_destroy_index = (e1_destroy_index + 1) % 5
+                        if e1_destroy_index == 0:
+                            score += 800
+                            each.reset()
+
+            # 发射中型敌机子弹
+            for each in mid_enemies:
+                if not (delay % 120):
+                    e_bullet1[e_bullet1_index].reset(each.rect.midbottom)
+                    e_bullet1_index = (e_bullet1_index + 1) % e_bullet1_num
+
+            # 发射大型敌机子弹
+            for each in big_enemies:
+                if shoot1:
+                    if not (delay % 40):
+                        e_bullet2[e_bullet2_index].reset(each.rect.midbottom)
+                        e_bullet2_index = (e_bullet2_index + 1) % e_bullet2_num
+                        shoot1 -= 1
+
+            # 发射大型敌机导弹
+            for each in big_enemies:
+                if shoot2:
+                    if not (delay % 20):
+                        e_bullet3[e_bullet3_index].reset((each.rect.centerx - 70, each.rect.centery - 30))
+                        e_bullet3[e_bullet3_index + 1].reset((each.rect.centerx + 70, each.rect.centery - 30))
+                        e_bullet3_index = (e_bullet3_index + 2) % e_bullet3_num
+                        shoot2 -= 1
 
             # 发射子弹
             if not (delay % rof):
@@ -624,6 +752,7 @@ def main():
                     bullet2[bullet2_index].reset((me.rect.centerx - 33, me.rect.centery))
                     bullet2[bullet2_index + 1].reset((me.rect.centerx + 31, me.rect.centery))
                     bullet2_index = (bullet2_index + 2) % bullet2_num
+
             # 检测子弹是否击中敌机
             if not update_bullet:
                 for b in bullet1:
@@ -664,13 +793,43 @@ def main():
                                 if e.HP <= 0:
                                     e.active = False
 
+            # 检测我方飞机是否中弹
+            for eb in e_bullet1:
+                if eb.active:
+                    eb.move()
+                    screen.blit(eb.image, eb.rect)
+                    me_hit = pygame.sprite.collide_rect(me, eb)
+                    if me_hit:
+                        eb.active = False
+                        me.active = False
+
+            # for eb in e_bullet2:
+            #     if eb.active:
+            #         eb.move()
+            #         screen.blit(eb.image1, eb.rect1)
+            #         screen.blit(eb.image2, eb.rect2)
+            #         screen.blit(eb.image3, eb.rect3)
+            #         me_hit = pygame.sprite.spritecollide(me, e_bullet, False, pygame.sprite.collide_mask)
+            #         if me_hit:
+            #             eb.active = False
+            #             me.active = False
+
+            for eb in e_bullet3:
+                if eb.active:
+                    eb.move()
+                    screen.blit(eb.image, eb.rect)
+                    me_hit = pygame.sprite.collide_rect(me, eb)
+                    if me_hit:
+                        eb.active = False
+                        me.active = False
+
             # 检测我方飞机是否被撞
             enemies_crash = pygame.sprite.spritecollide(me, enemies, False, pygame.sprite.collide_mask)
             if enemies_crash and not me.invincible:
                 me.active = False
+                score += 1000
                 for e in enemies_crash:
                     e.active = False
-                    score += 1000
 
             # 绘制我方飞机
             if me.active:
@@ -823,16 +982,18 @@ def main():
                     bomb_supply.reset()
                 elif 10 <= supply_p < 20:
                     bullet_supply.reset()
-                elif 20 <= supply_p < 40:
+                elif 20 <= supply_p < 35:
                     ballistic_supply.reset()
-                elif 40 <= supply_p < 50:
+                elif 35 <= supply_p < 45:
                     damage_supply.reset()
-                elif 50 <= supply_p < 70:
+                elif 45 <= supply_p < 60:
                     ROF_supply.reset()
-                elif 70 <= supply_p < 90:
+                elif 60 <= supply_p < 80:
                     range_supply.reset()
-                elif 90 <= supply_p < 100:
+                elif 80 <= supply_p < 90:
                     life_supply.reset()
+                elif 90 <= supply_p < 100:
+                    speed_supply.reset()
                 pygame.time.set_timer(SUPPLY_TIME, randint(4, 5) * 1000)
 
             elif event.type == SUPER_BULLET_TIME:
@@ -848,12 +1009,20 @@ def main():
                 w_action = choice([True, False])
                 pygame.time.set_timer(BIG_ENEMY_MOVE, randint(5, 10) * 100)
 
+            elif event.type == BIG_ENEMY_SHOOT1:
+                shoot1 = 3
+                pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(1, 3) * 1000)
+
+            elif event.type == BIG_ENEMY_SHOOT2:
+                shoot2 = 2
+                pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(3, 5) * 1000)
+
         # 根据用户的得分增加难度
         if level == 1 and score >= 1000:
             level = 2
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 10)
-            add_mid_enemies(mid_enemies, enemies, 2)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 2)
             update(small_enemies, level)
             update(mid_enemies, level)
 
@@ -861,7 +1030,8 @@ def main():
             level = 3
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 10)
-            add_mid_enemies(mid_enemies, enemies, 5)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 5)
+            add_bomb_enemies(bomb_enemies, enemies, 1)
             inc_speed(small_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
@@ -870,52 +1040,63 @@ def main():
             level = 4
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 20)
-            add_mid_enemies(mid_enemies, enemies, 8)
-            add_big_enemies(big_enemies, enemies, 1)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 8)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 1)
+            add_bomb_enemies(bomb_enemies, enemies, 2)
             inc_speed(mid_enemies, 1)
+            inc_speed(bomb_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
+            update(bomb_enemies, level)
 
         elif level == 4 and score >= 20000:
             level = 5
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 30)
-            add_mid_enemies(mid_enemies, enemies, 15)
-            add_big_enemies(big_enemies, enemies, 2)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 15)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 2)
+            add_bomb_enemies(bomb_enemies, enemies, 3)
             inc_speed(small_enemies, 1)
             inc_speed(mid_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
             update(big_enemies, level)
+            update(bomb_enemies, level)
 
         elif level == 5 and score >= 50000:
             level = 6
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 30)
-            add_mid_enemies(mid_enemies, enemies, 20)
-            add_big_enemies(big_enemies, enemies, 3)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 20)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 3)
+            add_bomb_enemies(bomb_enemies, enemies, 4)
             inc_speed(mid_enemies, 1)
             inc_speed(big_enemies, 1)
+            inc_speed(bomb_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
             update(big_enemies, level)
+            update(bomb_enemies, level)
 
         elif level == 6 and score >= 100000:
             level = 7
             upgrade_sound.play()
             add_small_enemies(small_enemies, enemies, 50)
-            add_mid_enemies(mid_enemies, enemies, 25)
-            add_big_enemies(big_enemies, enemies, 5)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 25)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 5)
+            add_bomb_enemies(bomb_enemies, enemies, 5)
             inc_speed(small_enemies, 1)
             inc_speed(big_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
             update(big_enemies, level)
+            update(bomb_enemies, level)
 
         # 绘制暂停按钮
         screen.blit(paused_image, paused_rect)
 
         pygame.display.flip()
+
         # 60帧
         clock.tick(60)
 
