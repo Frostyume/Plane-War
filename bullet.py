@@ -102,7 +102,7 @@ class EnemyBullet2(pygame.sprite.Sprite):
         self.rect1.left, self.rect1.top = position
         self.rect2.left, self.rect2.top = position
         self.rect3.left, self.rect3.top = position
-        self.speed = 6
+        self.speed = 2
         self.active = True
         self.mask = pygame.mask.from_surface(self.image1)
 
@@ -129,7 +129,7 @@ class EnemyBullet3(pygame.sprite.Sprite):
         self.image = pygame.image.load("images/enemy_bullet3.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = position
-        self.speed = 8
+        self.speed = 4
         self.active = True
         self.mask = pygame.mask.from_surface(self.image)
 

@@ -26,9 +26,9 @@ RED = (255, 0, 0)
 pygame.mixer.music.load("music/game_music.ogg")
 pygame.mixer.music.set_volume(0.1)
 bullet_sound = pygame.mixer.Sound("music/bullet.wav")
-bullet_sound.set_volume(0.2)
+bullet_sound.set_volume(0.3)
 missile_sound = pygame.mixer.Sound("music/missile.wav")
-missile_sound.set_volume(0.2)
+missile_sound.set_volume(0.3)
 bomb_sound = pygame.mixer.Sound("music/use_bomb.wav")
 bomb_sound.set_volume(0.2)
 supply_sound = pygame.mixer.Sound("music/supply.wav")
@@ -42,13 +42,13 @@ upgrade_sound.set_volume(0.2)
 enemy3_fly_sound = pygame.mixer.Sound("music/enemy3_flying.wav")
 enemy3_fly_sound.set_volume(0.2)
 enemy1_down_sound = pygame.mixer.Sound("music/enemy1_down.wav")
-enemy1_down_sound.set_volume(0.4)
+enemy1_down_sound.set_volume(0.5)
 enemy2_down_sound = pygame.mixer.Sound("music/enemy2_down.wav")
-enemy2_down_sound.set_volume(0.5)
+enemy2_down_sound.set_volume(0.6)
 enemy3_down_sound = pygame.mixer.Sound("music/enemy3_down.wav")
-enemy3_down_sound.set_volume(0.6)
+enemy3_down_sound.set_volume(0.8)
 me_down_sound = pygame.mixer.Sound("music/me_down.wav")
-me_down_sound.set_volume(0.2)
+me_down_sound.set_volume(0.3)
 
 
 def add_small_enemies(group1, group2, num):
@@ -72,8 +72,8 @@ def add_mid_enemies(group1, group2, e_bullet, e_bullet1, bullet_num, num):
 def add_big_enemies(group1, group2, e_bullet, e_bullet2, e_bullet3, bullet_num1, bullet_num2, num):
     for i in range(num):
         e3 = enemy.BigEnemy(bg_size)
-        b3 = bullet.EnemyBullet3((e3.rect.centerx - 70, e3.rect.centery - 30))
         b2 = bullet.EnemyBullet2(e3.rect.midbottom)
+        b3 = bullet.EnemyBullet3((e3.rect.centerx - 70, e3.rect.centery - 30))
         for j in range(bullet_num1):
             e_bullet2.append(b2)
             e_bullet.add(b2)
@@ -104,7 +104,20 @@ def update(target, level):
     for each in target:
         target.update(level)
 
-    
+
+def me_update(me, damage, rof, speed, life, bomb):
+    update_p = choice([1, 2, 3])
+    if update_p == 1:
+        damage += 4
+    elif update_p == 2:
+        rof -= 4
+    elif update_p == 3:
+        speed += 1
+
+    bomb += 1
+    life += 1
+
+
 def main():
     pygame.mixer.music.play(-1)
     # 生成我方飞机
@@ -135,7 +148,7 @@ def main():
     # 生成中型敌机子弹
     e_bullet1 = []
     e_bullet1_index = 0
-    e_bullet1_num = 2
+    e_bullet1_num = 4
 
     # 生成大型敌机子弹
     e_bullet2 = []
@@ -152,7 +165,7 @@ def main():
 
     # 生成小型敌机
     small_enemies = pygame.sprite.Group()
-    add_small_enemies(small_enemies, enemies, 30)
+    add_small_enemies(small_enemies, enemies, 10)
 
     # 生成中型敌机
     mid_enemies = pygame.sprite.Group()
@@ -236,12 +249,12 @@ def main():
 
     # 大型敌机随机发射子弹
     BIG_ENEMY_SHOOT1 = USEREVENT + 4
-    pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(1, 3) * 1000)
+    pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(3, 5) * 1000)
     shoot1 = 0
 
     # 大型敌机随机发射导弹
     BIG_ENEMY_SHOOT2 = USEREVENT + 5
-    pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(3, 5) * 1000)
+    pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(6, 9) * 1000)
     shoot2 = 0
 
     # 用于阻止重复打开记录文档
@@ -258,7 +271,7 @@ def main():
     switch_image = True
 
     # 延时计数器
-    delay = 120
+    delay = 180
 
     # 子弹射速
     rof = 30
@@ -289,7 +302,7 @@ def main():
             # 切换图片
             delay -= 1
             if not delay:
-                delay = 120
+                delay = 180
             if not (delay % 10):
                 switch_image = not switch_image
 
@@ -325,18 +338,17 @@ def main():
                             ballistic_num += 1
                             bullet1.clear()
                             if ballistic_num == 2:
-                                bullet_sound.set_volume(0.3)
                                 for i in range(bullet1_num // ballistic_num):
                                     bullet1.append(bullet.Bullet1((me.rect.centerx - 10, me.rect.top)))
                                     bullet1.append(bullet.Bullet1((me.rect.centerx + 10, me.rect.top)))
                             elif ballistic_num == 3:
-                                bullet_sound.set_volume(0.4)
+                                bullet_sound.set_volume(0.25)
                                 for i in range(bullet1_num // ballistic_num):
                                     bullet1.append(bullet.Bullet1((me.rect.centerx - 20, me.rect.top)))
                                     bullet1.append(bullet.Bullet1(me.rect.midtop))
                                     bullet1.append(bullet.Bullet1((me.rect.centerx + 18, me.rect.top)))
                             elif ballistic_num == 4:
-                                bullet_sound.set_volume(0.5)
+                                bullet_sound.set_volume(0.2)
                                 for i in range(bullet1_num // ballistic_num):
                                     bullet1.append(bullet.Bullet1((me.rect.centerx - 24, me.rect.top)))
                                     bullet1.append(bullet.Bullet1((me.rect.centerx - 8, me.rect.top)))
@@ -359,6 +371,7 @@ def main():
                             ballistic_num += 1
                             bullet3.clear()
                             if ballistic_num == 2:
+                                missile_sound.set_volume(0.25)
                                 for i in range(bullet3_num // ballistic_num):
                                     bullet3.append(bullet.Bullet3((me.rect.centerx - 18, me.rect.top)))
                                     bullet3.append(bullet.Bullet3((me.rect.centerx + 18, me.rect.top)))
@@ -368,6 +381,7 @@ def main():
                                     bullet3.append(bullet.Bullet3(me.rect.midtop))
                                     bullet3.append(bullet.Bullet3((me.rect.centerx + 24, me.rect.top)))
                             elif ballistic_num == 4:
+                                missile_sound.set_volume(0.20)
                                 for i in range(bullet3_num // ballistic_num):
                                     bullet3.append(bullet.Bullet3((me.rect.centerx - 29, me.rect.centery - 50)))
                                     bullet3.append(bullet.Bullet3((me.rect.centerx - 10, me.rect.top)))
@@ -565,7 +579,7 @@ def main():
                         e3_destroy_index = (e3_destroy_index + 1) % 7
                         if e3_destroy_index == 0:
                             enemy3_fly_sound.stop()
-                            score += 2000
+                            score += 1000 * level
                             each.reset()
 
             # 绘制中型敌机
@@ -598,7 +612,7 @@ def main():
                         screen.blit(each.destroy_images[e2_destroy_index], each.rect)
                         e2_destroy_index = (e2_destroy_index + 1) % 5
                         if e2_destroy_index == 0:
-                            score += 300
+                            score += 300 * level
                             each.reset()
 
             # 绘制小型敌机
@@ -627,7 +641,7 @@ def main():
                         screen.blit(each.destroy_images[e1_destroy_index], each.rect)
                         e1_destroy_index = (e1_destroy_index + 1) % 5
                         if e1_destroy_index == 0:
-                            score += 100
+                            score += 100 * level
                             each.reset()
 
             # 绘制自爆敌机
@@ -656,12 +670,12 @@ def main():
                         screen.blit(each.destroy_images[e1_destroy_index], each.rect)
                         e1_destroy_index = (e1_destroy_index + 1) % 5
                         if e1_destroy_index == 0:
-                            score += 800
+                            score += 500 * level
                             each.reset()
 
             # 发射中型敌机子弹
             for each in mid_enemies:
-                if not (delay % 120):
+                if not delay:
                     e_bullet1[e_bullet1_index].reset(each.rect.midbottom)
                     e_bullet1_index = (e_bullet1_index + 1) % e_bullet1_num
 
@@ -676,7 +690,7 @@ def main():
             # 发射大型敌机导弹
             for each in big_enemies:
                 if shoot2:
-                    if not (delay % 20):
+                    if not (delay % 30):
                         e_bullet3[e_bullet3_index].reset((each.rect.centerx - 70, each.rect.centery - 30))
                         e_bullet3[e_bullet3_index + 1].reset((each.rect.centerx + 70, each.rect.centery - 30))
                         e_bullet3_index = (e_bullet3_index + 2) % e_bullet3_num
@@ -785,7 +799,8 @@ def main():
                     if b.active:
                         b.move()
                         screen.blit(b.image, b.rect)
-                        enemy_hit = pygame.sprite.spritecollide(b, enemies, False, pygame.sprite.collide_mask)
+                        if not (delay % 3):
+                            enemy_hit = pygame.sprite.spritecollide(b, enemies, False, pygame.sprite.collide_mask)
                         if enemy_hit:
                             for e in enemy_hit:
                                 e.hit = True
@@ -798,7 +813,7 @@ def main():
                 if eb.active:
                     eb.move()
                     screen.blit(eb.image, eb.rect)
-                    me_hit = pygame.sprite.collide_rect(me, eb)
+                    me_hit = pygame.sprite.collide_mask(eb, me)
                     if me_hit:
                         eb.active = False
                         me.active = False
@@ -818,7 +833,7 @@ def main():
                 if eb.active:
                     eb.move()
                     screen.blit(eb.image, eb.rect)
-                    me_hit = pygame.sprite.collide_rect(me, eb)
+                    me_hit = pygame.sprite.collide_mask(eb, me)
                     if me_hit:
                         eb.active = False
                         me.active = False
@@ -827,7 +842,6 @@ def main():
             enemies_crash = pygame.sprite.spritecollide(me, enemies, False, pygame.sprite.collide_mask)
             if enemies_crash and not me.invincible:
                 me.active = False
-                score += 1000
                 for e in enemies_crash:
                     e.active = False
 
@@ -1011,51 +1025,54 @@ def main():
 
             elif event.type == BIG_ENEMY_SHOOT1:
                 shoot1 = 3
-                pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(1, 3) * 1000)
+                pygame.time.set_timer(BIG_ENEMY_SHOOT1, randint(3, 5) * 1000)
 
             elif event.type == BIG_ENEMY_SHOOT2:
                 shoot2 = 2
-                pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(3, 5) * 1000)
+                pygame.time.set_timer(BIG_ENEMY_SHOOT2, randint(6, 9) * 1000)
 
         # 根据用户的得分增加难度
         if level == 1 and score >= 1000:
             level = 2
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 10)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 5)
             add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 2)
             update(small_enemies, level)
             update(mid_enemies, level)
 
-        elif level == 2 and score >= 3000:
+        elif level == 2 and score >= 10000:
             level = 3
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 10)
-            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 5)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 5)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 2)
             add_bomb_enemies(bomb_enemies, enemies, 1)
             inc_speed(small_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
 
-        elif level == 3 and score >= 10000:
+        elif level == 3 and score >= 50000:
             level = 4
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 20)
-            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 8)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 10)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 3)
             add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 1)
-            add_bomb_enemies(bomb_enemies, enemies, 2)
-            inc_speed(mid_enemies, 1)
+            add_bomb_enemies(bomb_enemies, enemies, 1)
             inc_speed(bomb_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
             update(bomb_enemies, level)
 
-        elif level == 4 and score >= 20000:
+        elif level == 4 and score >= 150000:
             level = 5
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 30)
-            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 15)
-            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 2)
-            add_bomb_enemies(bomb_enemies, enemies, 3)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 15)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 5)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 1)
+            add_bomb_enemies(bomb_enemies, enemies, 2)
             inc_speed(small_enemies, 1)
             inc_speed(mid_enemies, 1)
             update(small_enemies, level)
@@ -1063,14 +1080,14 @@ def main():
             update(big_enemies, level)
             update(bomb_enemies, level)
 
-        elif level == 5 and score >= 50000:
+        elif level == 5 and score >= 500000:
             level = 6
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 30)
-            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 20)
-            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 3)
-            add_bomb_enemies(bomb_enemies, enemies, 4)
-            inc_speed(mid_enemies, 1)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 20)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 8)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 2)
+            add_bomb_enemies(bomb_enemies, enemies, 3)
             inc_speed(big_enemies, 1)
             inc_speed(bomb_enemies, 1)
             update(small_enemies, level)
@@ -1078,15 +1095,32 @@ def main():
             update(big_enemies, level)
             update(bomb_enemies, level)
 
-        elif level == 6 and score >= 100000:
+        elif level == 6 and score >= 1000000:
             level = 7
             upgrade_sound.play()
-            add_small_enemies(small_enemies, enemies, 50)
-            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 25)
-            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 5)
-            add_bomb_enemies(bomb_enemies, enemies, 5)
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 30)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 15)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 3)
+            add_bomb_enemies(bomb_enemies, enemies, 4)
             inc_speed(small_enemies, 1)
             inc_speed(big_enemies, 1)
+            inc_speed(bomb_enemies, 1)
+            update(small_enemies, level)
+            update(mid_enemies, level)
+            update(big_enemies, level)
+            update(bomb_enemies, level)
+
+        elif level == 7 and score >= 5000000:
+            level = 8
+            upgrade_sound.play()
+            me_update(me, damage, rof, me.speed, life_num, bomb_num)
+            add_small_enemies(small_enemies, enemies, 50)
+            add_mid_enemies(mid_enemies, enemies, e_bullet, e_bullet1, e_bullet1_num, 30)
+            add_big_enemies(big_enemies, enemies, e_bullet, e_bullet2, e_bullet3, e_bullet2_num, e_bullet3_num, 10)
+            add_bomb_enemies(bomb_enemies, enemies, 5)
+            inc_speed(small_enemies, 1)
+            inc_speed(bomb_enemies, 1)
             update(small_enemies, level)
             update(mid_enemies, level)
             update(big_enemies, level)
