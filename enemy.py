@@ -1,6 +1,7 @@
 import pygame
 from random import *
 import  math
+import bullet
 
 
 class SmallEnemy(pygame.sprite.Sprite):
@@ -72,12 +73,23 @@ class MidEnemy(pygame.sprite.Sprite):
         self.rect.left, self.rect.top = \
             randint(0, self.width - self.rect.width), \
             randint(-3 * self.height, -self.height)
+        self.bullet = []
+        self.bullet_index = 0
+        self.bullet_num = 4
+        for i in range(self.bullet_num):
+            self.bullet.append(bullet.EnemyBullet1(self.rect.midbottom))
+
 
     def move(self):
         if self.rect.top < self.height:
             self.rect.top += self.speed
         else:
             self.reset()
+
+
+    def fire(self):
+        self.bullet[self.bullet_index].reset(self.rect.midbottom)
+        self.bullet_index = (self.bullet_index + 1) % self.bullet_num
 
     def reset(self):
         self.active = True

@@ -58,13 +58,9 @@ def add_small_enemies(group1, group2, num):
         group2.add(e1)
 
 
-def add_mid_enemies(group1, group2, e_bullet, e_bullet1, bullet_num, num):
+def add_mid_enemies(group1, group2, num):
     for i in range(num):
         e2 = enemy.MidEnemy(bg_size)
-        b1 = bullet.EnemyBullet1(e2.rect.midbottom)
-        for j in range(bullet_num):
-            e_bullet1.append(b1)
-            e_bullet.add(b1)
         group1.add(e2)
         group2.add(e2)
 
@@ -145,10 +141,10 @@ def main():
     # 生成敌机子弹
     e_bullet = pygame.sprite.Group()
 
-    # 生成中型敌机子弹
-    e_bullet1 = []
-    e_bullet1_index = 0
-    e_bullet1_num = 4
+    # # 生成中型敌机子弹
+    # e_bullet1 = []
+    # e_bullet1_index = 0
+    # e_bullet1_num = 4
 
     # 生成大型敌机子弹
     e_bullet2 = []
@@ -676,8 +672,7 @@ def main():
             # 发射中型敌机子弹
             for each in mid_enemies:
                 if not delay:
-                    e_bullet1[e_bullet1_index].reset(each.rect.midbottom)
-                    e_bullet1_index = (e_bullet1_index + 1) % e_bullet1_num
+                    each.fire()
 
             # 发射大型敌机子弹
             for each in big_enemies:
@@ -809,7 +804,7 @@ def main():
                                     e.active = False
 
             # 检测我方飞机是否中弹
-            for eb in e_bullet1:
+            for eb in mid_enemies.bullet:
                 if eb.active:
                     eb.move()
                     screen.blit(eb.image, eb.rect)
